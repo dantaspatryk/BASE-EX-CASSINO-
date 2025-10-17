@@ -1,0 +1,91 @@
+import React, { useState } from 'react';
+import type { AiProfile, CustomStrategyConfig, StrategyProfile } from '../../types';
+import AiGeneratorCard from '../../components/AiGeneratorCard';
+import DecodingMatrix from '../../components/DecodingMatrix';
+import type { AnalysisLog } from '../../hooks/useGenericAnalysis';
+
+const SlidersIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" /></svg>);
+
+const STRATEGY_PROFILES: StrategyProfile[] = ['Agressivo', 'Oportunista', 'Moderado', 'Conservador', 'Defensivo'];
+
+interface DiamondAiGeneratorProps {
+    onGenerate: (aiProfile: AiProfile, forceBadSignal: boolean, customStrategy: CustomStrategyConfig) => void;
+    isLoading: boolean;
+    isApplicable: boolean;
+    analysisLogs: AnalysisLog[];
+}
+
+const DiamondAiGenerator: React.FC<DiamondAiGeneratorProps> = ({ onGenerate, isLoading, isApplicable, analysisLogs }) => {
+    const [selectedProfile, setSelectedProfile] = useState<StrategyProfile>('Moderado');
+    const [numberOfAttempts, setNumberOfAttempts] = useState(5);
+    const [maxRoundsPerAttempt, setMaxRoundsPerAttempt] = useState(12);
+
+    const customControls = (
+         <div className="space-y-4 animate-fade-in">
+            <div>
+                <label className="text-white font-semibold mb-2 block">Perfil Estratégico</label>
+                <div className="flex flex-wrap gap-2">
+                    {STRATEGY_PROFILES.map(profile => (
+                        <button 
+                            key={profile}
+                            onClick={() => setSelectedProfile(profile)}
+                            className={`px-3 py-2 text-sm font-bold rounded-lg transition-all duration-200 border ${selectedProfile === profile ? 'bg-teal-500 border-teal-300 text-black shadow-lg' : 'bg-gray-800/60 border-gray-700 text-white hover:bg-gray-700'}`}
+                        >
+                            {profile}
+                        </button>
+                    ))}
+                </div>
+            </div>
+             <div>
+                <div className="flex justify-between items-center mb-1">
+                    <label htmlFor="attempts-slider" className="text-white font-semibold">Quantidade de Entradas</label>
+                    <span className="text-sm font-bold text-teal-300 bg-gray-700/50 px-2 py-0.5 rounded-md">{numberOfAttempts} Entradas</span>
+                </div>
+                <input 
+                    id="attempts-slider"
+                    type="range" 
+                    min="2" 
+                    max="8" 
+                    value={numberOfAttempts} 
+                    onChange={(e) => setNumberOfAttempts(Number(e.target.value))} 
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-thumb-teal" 
+                />
+            </div>
+            <div>
+                <div className="flex justify-between items-center mb-1">
+                    <label htmlFor="rounds-slider" className="text-white font-semibold">Máximo de Rodadas por Entrada</label>
+                    <span className="text-sm font-bold text-teal-300 bg-gray-700/50 px-2 py-0.5 rounded-md">Até {maxRoundsPerAttempt}</span>
+                </div>
+                <input 
+                    id="rounds-slider"
+                    type="range" 
+                    min="5" 
+                    max="20" 
+                    value={maxRoundsPerAttempt} 
+                    onChange={(e) => setMaxRoundsPerAttempt(Number(e.target.value))} 
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-thumb-teal" 
+                />
+            </div>
+        </div>
+    );
+
+
+    return (
+        <AiGeneratorCard
+            title="Diamond AI"
+            description="Você no controle. Defina o perfil e a profundidade da análise para uma estratégia personalizada."
+            icon={<SlidersIcon className="w-10 h-10 text-teal-300 flex-shrink-0"/>}
+            onClick={() => onGenerate('Diamond', false, { strategyProfile: selectedProfile, numberOfAttempts, maxRoundsPerAttempt })}
+            disabled={isLoading || !isApplicable}
+            disabledReason={!isApplicable ? 'Apenas para Slots & Fortune' : undefined}
+            borderColor="border-teal-500/50"
+            contentTop={
+                <DecodingMatrix themeColor="teal" />
+            }
+            contentBottom={customControls}
+            buttonText="Gerar Sinal Personalizado"
+        />
+    );
+};
+
+export default DiamondAiGenerator;
